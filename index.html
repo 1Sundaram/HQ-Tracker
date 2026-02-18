@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HQ Point Tracker</title>
+    <style>
+        :root {
+            --primary: #5b41ee;
+            --primary-hover: #4a41eb;
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #22c55e;
+            --border: #334155;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header & Scoreboard */
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            background: linear-gradient(135deg, var(--card-bg), #253045);
+            padding: 30px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        h1 { 
+            margin-bottom: 10px; 
+            font-size: 2rem; 
+            background: linear-gradient(to right, #818cf8, #c084fc); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+        }
+        
+        .scoreboard {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .score-box {
+            background: rgba(255,255,255,0.05);
+            padding: 15px 30px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid var(--border);
+            min-width: 200px;
+        }
+
+        .score-label { font-size: 0.9rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+        .score-value { font-size: 2.5rem; font-weight: bold; color: var(--success); }
+        .score-value.min { color: var(--primary); }
+
+        /* Grid Layout */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .category-card {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 25px;
+            border: 1px solid var(--border);
+            transition: transform 0.2s;
+        }
+
+        .category-card:hover { transform: translateY(-5px); border-color: var(--primary); }
+
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .category-title { font-size: 1.25rem; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+        .badge { font-size: 0.75rem; padding: 4px 8px; border-radius: 6px; background: rgba(99, 102, 241, 0.2); color: #818cf8; }
+
+        /* Task List */
+        .task-list { list-style: none; }
+
+        .task-item {
+            background: rgba(255,255,255,0.03);
+            margin-bottom: 12px;
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background 0.2s;
+        }
+
+        .task-item:hover { background: rgba(255,255,255,0.06); }
+
+        .task-info { flex: 1; }
+        .task-name { font-weight: 500; display: block; margin-bottom: 4px; }
+        .task-points { font-size: 0.85rem; color: var(--text-muted); }
+        .task-points span { color: var(--success); font-weight: bold; }
+
+        /* Custom Checkbox - IMPROVED VISIBILITY & SCALING */
+        .checkbox-wrapper {
+            position: relative;
+            width: 24px;           /* base size */
+            height: 24px;          /* base size */
+            min-width: 24px;
+            min-height: 24px;
+            margin-left: 15px;
+            flex-shrink: 0;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .checkbox-wrapper input {
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .checkmark {
+            position: absolute;
+            inset: 0; /* top:0; right:0; bottom:0; left:0; */
+            background-color: rgba(255,255,255,0.1);
+            border-radius: 6px;
+            cursor: pointer;
+            border: 2px solid var(--border);
+            transition: all 0.2s ease;
+            display: block;
+            box-sizing: border-box;
+        }
+
+        .checkbox-wrapper input:checked ~ .checkmark {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        /* scalable tick using percentages */
+        .checkmark:after {
+            content: "";
+            position: absolute;
+            left: 35%;
+            top: 15%;
+            width: 30%;
+            height: 55%;
+            border: solid white;
+            border-width: 0 3px 3px 0;
+            transform: rotate(45deg);
+            display: none;
+            box-sizing: border-box;
+        }
+
+        .checkbox-wrapper input:checked ~ .checkmark:after {
+            display: block;
+        }
+
+        /* Weekly checkboxes override (keeps previous sizes) */
+        .week-checkbox .checkbox-wrapper {
+            margin: 0;
+            width: 28px;
+            height: 28px;
+            min-width: 28px;
+            min-height: 28px;
+        }
+
+        /* Daily Grid Checkboxes override (keeps previous sizes) */
+        .daily-check-item .checkbox-wrapper {
+            margin: 0;
+            width: 30px;
+            height: 30px;
+            min-width: 30px;
+            min-height: 30px;
+        }
+
+        /* Weekly Checkboxes for Monday Tasks */
+        .weekly-checks {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .week-checkbox {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .week-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        /* Daily Grid */
+        .daily-grid-container {
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+
+        .daily-grid-label {
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .daily-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+        }
+
+        .daily-check-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            background: rgba(0,0,0,0.2);
+            padding: 10px 5px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .daily-check-item:hover {
+            background: rgba(99, 102, 241, 0.2);
+        }
+
+        .daily-check-item span {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .reset-btn {
+            display: block;
+            margin: 40px auto;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .reset-btn:hover { border-color: #ef4444; color: #ef4444; }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .scoreboard { gap: 20px; }
+            .score-value { font-size: 2rem; }
+            .daily-grid { grid-template-columns: repeat(5, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>🦆 HQ Tracker</h1>
+        <p style="color: var(--text-muted);">Track your India Quack Believers progress</p>
+        
+        <div class="scoreboard">
+            <div class="score-box">
+                <div class="score-label">Minimum Points</div>
+                <div class="score-value min" id="total-min">0</div>
+            </div>
+            <div class="score-box">
+                <div class="score-label">Maximum Points</div>
+                <div class="score-value" id="total-max">0</div>
+            </div>
+        </div>
+    </header>
+
+    <div class="grid">
+        
+        <!-- MONTHLY COLUMN -->
+        <div class="category-card">
+            <div class="category-header">
+                <div class="category-title">📅 Monthly Tasks <span class="badge">1x / Month</span></div>
+            </div>
+            <ul class="task-list" id="monthly-list">
+                <!-- Injected via JS -->
+            </ul>
+        </div>
+
+        <!-- MONDAY COLUMN -->
+        <div class="category-card">
+            <div class="category-header">
+                <div class="category-title">📆 Monday Tasks <span class="badge">4 Weeks</span></div>
+            </div>
+            <ul class="task-list" id="monday-list">
+                <!-- Injected via JS -->
+            </ul>
+        </div>
+
+        <!-- DAILY COLUMN -->
+        <div class="category-card">
+            <div class="category-header">
+                <div class="category-title">⚡ Daily Routine <span class="badge">Per Check</span></div>
+            </div>
+            
+            <!-- Report Bugs Section -->
+            <div class="daily-grid-container">
+                <div class="daily-grid-label">
+                    <span>Report Bug (25 pts each)</span>
+                    <span id="bug-count" style="color:var(--success)">0/10</span>
+                </div>
+                <div class="daily-grid" id="bug-grid">
+                    <!-- 10 Checkboxes injected via JS -->
+                </div>
+            </div>
+
+            <!-- Share Journey Section -->
+            <div class="daily-grid-container" style="margin-top: 20px;">
+                <div class="daily-grid-label">
+                    <span>Share Web3 Journey (1-30 pts each)</span>
+                    <span id="journey-count" style="color:var(--success)">0/5</span>
+                </div>
+                <div class="daily-grid" id="journey-grid">
+                    <!-- 5 Checkboxes injected via JS -->
+                </div>
+            </div>
+            
+            <div style="margin-top: 15px; font-size: 0.85rem; color: var(--text-muted); text-align: center;">
+                Click any box above to instantly add points
+            </div>
+        </div>
+
+    </div>
+
+    <button class="reset-btn" onclick="resetData()">⚠️ Reset All Progress</button>
+</div>
+
+<script>
+    // Configuration
+    const tasks = {
+        monthly: [
+            { id: 'm1', name: 'Technical Blog (HQ Forum)', min: 10, max: 50 },
+            { id: 'm2', name: 'Share Project on Twitter', min: 10, max: 50 },
+            { id: 'm3', name: 'Craft Insightful Web3 Threads', min: 1, max: 30 },
+            { id: 'm4', name: 'Refer Friend (HQ Believer)', min: 20, max: 20 },
+            { id: 'm5', name: 'Submit Project (Monthly Builder Trial)', min: 75, max: 75 },
+            { id: 'm6', name: 'Report Wins/Grants', min: 50, max: 50 },
+            { id: 'm7', name: 'Write Detailed Blog Post', min: 25, max: 75 },
+            { id: 'm8', name: 'Refer Friend (Co-Learning Camp)', min: 25, max: 25 }
+        ],
+        monday: [
+            { id: 'w1', name: 'Attend Weekly Connect', min: 25, max: 25 },
+            { id: 'w2', name: 'Weekly Connect Tweet', min: 10, max: 30 },
+            { id: 'w3', name: 'Create & Post Memes', min: 20, max: 20 },
+            { id: 'w4', name: 'Short Video (60-90s)', min: 10, max: 50 },
+            { id: 'w5', name: 'Tutorial Video (10-15m)', min: 25, max: 75 },
+            { id: 'w6', name: 'Info Video (2-5m)', min: 20, max: 60 }
+        ],
+        // Daily tasks are now handled as individual checkboxes
+        dailyConfig: {
+            bugs: { count: 10, min: 25, max: 25 },
+            journey: { count: 5, min: 1, max: 30 }
+        }
+    };
+
+    // State management
+    let state = {
+        monthly: {}, 
+        monday: {},  
+        daily: {
+            bugs: [],    // Array of booleans length 10
+            journey: []  // Array of booleans length 5
+        }
+    };
+
+    // Initialize
+    function init() {
+        loadState();
+        
+        // Ensure arrays exist and are correct length
+        if (!state.daily.bugs || state.daily.bugs.length !== 10) state.daily.bugs = new Array(10).fill(false);
+        if (!state.daily.journey || state.daily.journey.length !== 5) state.daily.journey = new Array(5).fill(false);
+
+        renderMonthly();
+        renderMonday();
+        renderDailyGrids();
+        calculateTotal();
+    }
+
+    // Render Functions
+    function renderMonthly() {
+        const list = document.getElementById('monthly-list');
+        list.innerHTML = '';
+        tasks.monthly.forEach(task => {
+            const isChecked = state.monthly[task.id] || false;
+            list.innerHTML += createTaskHTML(task, isChecked, 'monthly');
+        });
+    }
+
+    function renderMonday() {
+        const list = document.getElementById('monday-list');
+        list.innerHTML = '';
+        tasks.monday.forEach(task => {
+            if (!state.monday[task.id]) {
+                state.monday[task.id] = { w1: false, w2: false, w3: false, w4: false };
+            }
+            list.innerHTML += createMondayTaskHTML(task);
+        });
+    }
+function renderDailyGrids() {
+    // Render Bugs (10 checkboxes)
+    const bugGrid = document.getElementById('bug-grid');
+    bugGrid.innerHTML = '';
+    state.daily.bugs.forEach((isChecked, index) => {
+        bugGrid.innerHTML += `
+            <div class="daily-check-item">
+                <label class="checkbox-wrapper">
+                    <input type="checkbox" 
+                           ${isChecked ? 'checked' : ''} 
+                           onchange="toggleDaily('bugs', ${index})">
+                    <span class="checkmark"></span>
+                </label>
+                <span>#${index + 1}</span>
+            </div>
+        `;
+    });
+    document.getElementById('bug-count').textContent =
+        `${state.daily.bugs.filter(Boolean).length}/10`;
+
+    // Render Journey (5 checkboxes)
+    const journeyGrid = document.getElementById('journey-grid');
+    journeyGrid.innerHTML = '';
+    state.daily.journey.forEach((isChecked, index) => {
+        journeyGrid.innerHTML += `
+            <div class="daily-check-item">
+                <label class="checkbox-wrapper">
+                    <input type="checkbox" 
+                           ${isChecked ? 'checked' : ''} 
+                           onchange="toggleDaily('journey', ${index})">
+                    <span class="checkmark"></span>
+                </label>
+                <span>#${index + 1}</span>
+            </div>
+        `;
+    });
+    document.getElementById('journey-count').textContent =
+        `${state.daily.journey.filter(Boolean).length}/5`;
+}
+
+
+    function createTaskHTML(task, isChecked, category) {
+        return `
+            <li class="task-item">
+                <div class="task-info">
+                    <span class="task-name">${task.name}</span>
+                    <span class="task-points">Min: <span>${task.min}</span> | Max: <span>${task.max}</span></span>
+                </div>
+                <label class="checkbox-wrapper">
+                    <input type="checkbox" 
+                           ${isChecked ? 'checked' : ''} 
+                           onchange="toggleTask('${category}', '${task.id}', this.checked)">
+                    <span class="checkmark"></span>
+                </label>
+            </li>
+        `;
+    }
+
+    function createMondayTaskHTML(task) {
+        const weeks = state.monday[task.id] || { w1: false, w2: false, w3: false, w4: false };
+        
+        return `
+            <li class="task-item">
+                <div class="task-info">
+                    <span class="task-name">${task.name}</span>
+                    <span class="task-points">Min: <span>${task.min}</span> | Max: <span>${task.max}</span></span>
+                </div>
+                <div class="weekly-checks">
+                    ${['w1', 'w2', 'w3', 'w4'].map((week, idx) => `
+                        <div class="week-checkbox">
+                            <span class="week-label">W${idx + 1}</span>
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox" 
+                                       ${weeks[week] ? 'checked' : ''} 
+                                       onchange="toggleMondayWeek('${task.id}', '${week}', this.checked)">
+                                <span class="checkmark"></span>
+                            </label>
+                        </div>
+                    `).join('')}
+                </div>
+            </li>
+        `;
+    }
+
+    // Logic Functions
+    window.toggleTask = function(category, id, checked) {
+        state[category][id] = checked;
+        saveState();
+        calculateTotal();
+    };
+
+    window.toggleMondayWeek = function(taskId, week, checked) {
+        if (!state.monday[taskId]) {
+            state.monday[taskId] = { w1: false, w2: false, w3: false, w4: false };
+        }
+        state.monday[taskId][week] = checked;
+        saveState();
+        calculateTotal();
+    };
+
+window.toggleDaily = function(type, index) {
+    state.daily[type][index] = !state.daily[type][index];
+    saveState();
+    calculateTotal();
+};
+
+    window.calculateTotal = function() {
+        let minTotal = 0;
+        let maxTotal = 0;
+
+        // 1. Monthly Tasks
+        tasks.monthly.forEach(task => {
+            if (state.monthly[task.id]) {
+                minTotal += task.min;
+                maxTotal += task.max;
+            }
+        });
+
+        // 2. Monday Tasks
+        tasks.monday.forEach(task => {
+            if (state.monday[task.id]) {
+                const weeksChecked = Object.values(state.monday[task.id]).filter(Boolean).length;
+                minTotal += (task.min * weeksChecked);
+                maxTotal += (task.max * weeksChecked);
+            }
+        });
+
+        // 3. Daily Tasks (Sum of individual checks)
+        const bugsChecked = state.daily.bugs.filter(Boolean).length;
+        const journeyChecked = state.daily.journey.filter(Boolean).length;
+
+        minTotal += (bugsChecked * tasks.dailyConfig.bugs.min);
+        maxTotal += (bugsChecked * tasks.dailyConfig.bugs.max);
+
+        minTotal += (journeyChecked * tasks.dailyConfig.journey.min);
+        maxTotal += (journeyChecked * tasks.dailyConfig.journey.max);
+
+        // Update display with animation
+        animateValue("total-min", parseInt(document.getElementById("total-min").innerText), minTotal, 300);
+        animateValue("total-max", parseInt(document.getElementById("total-max").innerText), maxTotal, 300);
+    };
+
+    // LocalStorage
+    function saveState() {
+        localStorage.setItem('HQState', JSON.stringify(state));
+    }
+
+    function loadState() {
+        const saved = localStorage.getItem('HQState');
+        if (saved) {
+            state = JSON.parse(saved);
+        }
+    }
+
+    window.resetData = function() {
+        if(confirm("Are you sure you want to reset all progress?")) {
+            localStorage.removeItem('HQState');
+            location.reload();
+        }
+    };
+
+    // Utility: Number Animation
+    function animateValue(id, start, end, duration) {
+        if (start === end) return;
+        const range = end - start;
+        let current = start;
+        const increment = end > start ? 1 : -1;
+        const stepTime = Math.abs(Math.floor(duration / range));
+        const obj = document.getElementById(id);
+        const actualStepTime = stepTime > 50 ? 50 : stepTime; 
+
+        const timer = setInterval(function() {
+            current += increment;
+            obj.innerHTML = current;
+            if (current == end) {
+                clearInterval(timer);
+            }
+        }, actualStepTime);
+    }
+
+    // Run
+    init();
+
+</script>
+
+</body>
+</html>
