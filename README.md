@@ -5,7 +5,7 @@ A simple web-based tracker to manage Monthly, Weekly, and Daily tasks with autom
 <br>
 
 ## 🌐 Live Link
-[https://your-live-link-here.com ](https://1sundaram.github.io/HQ-Tracker/) 
+[HQ-Tracker-Live](https://1sundaram.github.io/HQ-Tracker/) 
 
 <br>
 
