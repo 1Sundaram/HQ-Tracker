@@ -23,8 +23,6 @@ Track your **Monthly**, **Weekly**, and **Daily** progress with a beautiful glas
 
 # ✨ Preview
 
-<div align="center">
-
 ### 🌌 Futuristic Dark Dashboard
 Advanced multi-month tracking system with real-time point calculations.
 
