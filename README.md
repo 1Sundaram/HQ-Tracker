@@ -20,6 +20,7 @@ Track your **Monthly**, **Weekly**, and **Daily** progress with a beautiful glas
 </div>
 
 ---
+<br>
 
 # ✨ Preview
 
@@ -28,7 +29,8 @@ Advanced multi-month tracking system with real-time point calculations.
 
 </div>
 
----
+<br>
+<br>
 
 # 🚀 Features
 
@@ -38,7 +40,8 @@ Advanced multi-month tracking system with real-time point calculations.
 - Daily progress monitoring
 - Multi-month switching support
 
----
+<br>
+<br>
 
 ## 📊 Automatic Point Calculation
 - Real-time score updates
@@ -46,7 +49,8 @@ Advanced multi-month tracking system with real-time point calculations.
 - Overall performance statistics
 - Instant dashboard refresh
 
----
+<br>
+<br>
 
 ## 💾 Persistent Progress Saving
 - Uses browser LocalStorage
@@ -54,7 +58,8 @@ Advanced multi-month tracking system with real-time point calculations.
 - Keeps progress after refresh
 - No database required
 
----
+<br>
+<br>
 
 ## 🎨 Modern UI Experience
 - Glassmorphism design
@@ -63,14 +68,16 @@ Advanced multi-month tracking system with real-time point calculations.
 - Responsive layout
 - Mobile-friendly interface
 
----
+<br>
+<br>
 
 ## 🔄 Reset System
 - Reset Month 1 separately
 - Reset Month 2 separately
 - Reset complete tracker instantly
 
----
+<br>
+<br>
 
 # 🛠️ Built With
 
@@ -85,7 +92,8 @@ Advanced multi-month tracking system with real-time point calculations.
 
 </div>
 
----
+<br>
+<br>
 
 # 📂 Project Structure
 
